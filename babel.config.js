@@ -5,7 +5,7 @@ module.exports = (api) => ({
       "@babel/preset-env",
       {
         useBuiltIns: "entry",
-        corejs: 3,
+        corejs: "3",
         targets: api.caller((caller) => caller && caller.target === "node")
           ? { node: "current" }
           : { chrome: "58", ie: "11" },
