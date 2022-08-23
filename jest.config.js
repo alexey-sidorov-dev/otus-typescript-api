@@ -20,7 +20,12 @@ module.exports = {
   // collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  collectCoverageFrom: ["./src/*.{js,ts}"],
+  collectCoverageFrom: [
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "!./src/interfaces/**",
+    "!./src/types/**",
+    "!./src/**/*.d.ts",
+  ],
   // collectCoverageFrom: [
   //     "**/*.{js,jsx}",
   //     "!**/node_modules/**",

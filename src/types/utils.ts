@@ -1,8 +1,11 @@
 /** * Inspired by https://effectivetypescript.com/ ** */
 
 type KVPair = { k: PropertyKey; v: unknown };
+
 type OmitKV<T extends KVPair, V> = T extends { v: V } ? never : T;
+
 type PickKV<T extends KVPair, V> = T extends { v: V } ? T : never;
+
 type SwapKV<T> = T extends { k: infer K; v: infer V }
   ? V extends PropertyKey
     ? { k: V; v: K }

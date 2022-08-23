@@ -1,44 +1,62 @@
 import { JsonDB } from "node-json-db";
-import { IStorage } from "./istorage";
-import { IInputData, ITaskData, TCriteria } from "./itask";
+import { IStorage } from "../interfaces/storage";
+import { ITaskData, FilterCriteria } from "../interfaces/task";
 
 export class JsonDatabase implements IStorage {
   readonly db: JsonDB;
 
   readonly dataPath: string;
 
-  readonly saveOnPush: boolean;
-
-  constructor(db: JsonDB, dataPath: string, saveOnPush: boolean) {
+  constructor(db: JsonDB, dataPath: string) {
     this.db = db;
     this.dataPath = dataPath;
-    this.saveOnPush = saveOnPush;
   }
 
-  create: <T extends IInputData>(inputData: T) => void = () => {
-    console.log(this.dataPath);
-  };
+  async create(task: ITaskData) {
+    return this.db.push(`${this.dataPath}[]`, task);
+  }
 
-  read: (id?: string | undefined) => ITaskData | ITaskData[] | undefined = () => {
-    console.log(this.dataPath);
-    return undefined;
-  };
+  async read() {
+    try {
+      const data: ITaskData[] = await this.db.getData(this.dataPath);
+      return data;
+    } catch (e) {
+      return [];
+    }
+  }
 
-  update: <T extends IInputData>(taskData: T) => void = () => {
-    console.log(this.dataPath);
-  };
+  async update(task: ITaskData) {
+    const data = await this.read();
+    for (let i = 0; i < data.length; i += 1) {
+      if (task.id === data[i].id) {
+        data[i] = task;
+      }
+    }
 
-  delete: (id?: string | undefined) => void = () => {
-    console.log(this.dataPath);
-  };
+    return this.db.push(this.dataPath, data);
+  }
 
-  filter: (criteria: TCriteria) => ITaskData[] | undefined = () => {
-    console.log(this.dataPath);
-    return undefined;
-  };
+  async delete(task: ITaskData) {
+    const data = await this.read();
 
-  find: (criteria: TCriteria) => ITaskData | undefined = () => {
-    console.log(this.dataPath);
-    return undefined;
-  };
+    for (let i = 0; i < data.length; i += 1) {
+      if (task.id === data[i].id) {
+        data.splice(i, 1);
+      }
+    }
+
+    return this.db.push(this.dataPath, data);
+  }
+
+  async filter(filterCriteria: FilterCriteria) {
+    const data = await this.read();
+    const filterKey = filterCriteria.k;
+    const filterValue = filterCriteria.v;
+
+    if (filterKey === "description") {
+      return data.filter((item) => item.description.includes(filterValue as string));
+    }
+
+    return data.filter((item) => item[filterKey] === filterValue);
+  }
 }
