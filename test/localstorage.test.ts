@@ -1,8 +1,10 @@
+import UUID from "pure-uuid";
 import { LocalStorage } from "../src/api/localstorage";
 import { ITaskData } from "../src/interfaces/task";
 
 describe("LocalStorage", () => {
-  const storage = new LocalStorage("calendar/tasks");
+  const dataIdentifier = new UUID().make(4).toString();
+  const storage = new LocalStorage(dataIdentifier);
   const taskOne: ITaskData = {
     id: 1,
     name: "planned task",
@@ -43,8 +45,8 @@ describe("LocalStorage", () => {
     await storage.create(taskThree);
   });
 
-  afterAll(() => {
-    storage.localStorage.clear();
+  afterAll(async () => {
+    storage.clear(dataIdentifier);
   });
 
   it("should read data from localStorage", async () => {
@@ -79,5 +81,11 @@ describe("LocalStorage", () => {
     expect(await storage.filter({ k: "date", v: Date.parse("2022-08-22 23:23:23") })).toStrictEqual(
       [taskOne]
     );
+  });
+
+  it("should clear data from storage", async () => {
+    await storage.clear(dataIdentifier);
+
+    expect(await storage.read()).toStrictEqual([]);
   });
 });

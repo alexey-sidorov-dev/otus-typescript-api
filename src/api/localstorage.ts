@@ -2,40 +2,32 @@ import { IStorage } from "../interfaces/storage";
 import { ITaskData, FilterCriteria } from "../interfaces/task";
 
 export class LocalStorage implements IStorage {
-  readonly dataPath: string;
+  readonly dataIdentifier: string;
 
   readonly localStorage = localStorage;
 
   constructor(dataPath: string) {
-    this.dataPath = dataPath;
+    this.dataIdentifier = dataPath;
   }
 
   async create(task: ITaskData) {
     const data: ITaskData[] = await this.read();
     data.push(task);
 
-    return localStorage.setItem(this.dataPath, JSON.stringify(data));
+    return localStorage.setItem(this.dataIdentifier, JSON.stringify(data));
   }
 
   async read() {
-    const data: string | null = localStorage.getItem(this.dataPath);
-    if (data) {
-      return JSON.parse(data);
-    }
+    const data = localStorage.getItem(this.dataIdentifier);
 
-    return [];
+    return data ? JSON.parse(data) : [];
   }
 
   async update(task: ITaskData) {
     const data: ITaskData[] = await this.read();
+    const newData = data.map((item) => (task.id === item.id ? task : item));
 
-    for (let i = 0; i < data.length; i += 1) {
-      if (task.id === data[i].id) {
-        data[i] = task;
-      }
-    }
-
-    return localStorage.setItem(this.dataPath, JSON.stringify(data));
+    return localStorage.setItem(this.dataIdentifier, JSON.stringify(newData));
   }
 
   async delete(item: ITaskData) {
@@ -47,18 +39,18 @@ export class LocalStorage implements IStorage {
       }
     }
 
-    return localStorage.setItem(this.dataPath, JSON.stringify(data));
+    return localStorage.setItem(this.dataIdentifier, JSON.stringify(data));
   }
 
-  async filter(filterCriteria: FilterCriteria) {
+  async clear(dataIdentifier: string) {
+    return this.localStorage.removeItem(dataIdentifier);
+  }
+
+  async filter({ k, v }: FilterCriteria) {
     const data: ITaskData[] = await this.read();
-    const filterKey = filterCriteria.k;
-    const filterValue = filterCriteria.v;
 
-    if (filterKey === "description") {
-      return data.filter((item) => item.description.includes(filterValue as string));
-    }
-
-    return data.filter((item) => item[filterKey] === filterValue);
+    return k === "description"
+      ? data.filter((item) => item.description.includes(v))
+      : data.filter((item) => item[k] === v);
   }
 }

@@ -27,13 +27,9 @@ export class JsonDatabase implements IStorage {
 
   async update(task: ITaskData) {
     const data = await this.read();
-    for (let i = 0; i < data.length; i += 1) {
-      if (task.id === data[i].id) {
-        data[i] = task;
-      }
-    }
+    const newData = data.map((item) => (task.id === item.id ? task : item));
 
-    return this.db.push(this.dataPath, data);
+    return this.db.push(this.dataPath, newData);
   }
 
   async delete(task: ITaskData) {
@@ -48,15 +44,15 @@ export class JsonDatabase implements IStorage {
     return this.db.push(this.dataPath, data);
   }
 
-  async filter(filterCriteria: FilterCriteria) {
+  async clear(dataIdentifier: string) {
+    return this.db.delete(dataIdentifier);
+  }
+
+  async filter({ k, v }: FilterCriteria) {
     const data = await this.read();
-    const filterKey = filterCriteria.k;
-    const filterValue = filterCriteria.v;
 
-    if (filterKey === "description") {
-      return data.filter((item) => item.description.includes(filterValue as string));
-    }
-
-    return data.filter((item) => item[filterKey] === filterValue);
+    return k === "description"
+      ? data.filter((item) => item.description.includes(v))
+      : data.filter((item) => item[k] === v);
   }
 }

@@ -1,10 +1,12 @@
 import { JsonDB } from "node-json-db";
 import { Config } from "node-json-db/dist/lib/JsonDBConfig";
+import UUID from "pure-uuid";
 import { JsonDatabase } from "../src/api/jsondatabase";
 import { ITaskData } from "../src/interfaces/task";
 
 describe("JsonDatabase", () => {
-  const dataPath = "/calendar/tasks";
+  const dataIdentifier = new UUID().make(4).toString();
+  const dataPath = `/${dataIdentifier}`;
   const storage = new JsonDatabase(
     new JsonDB(new Config("resources/calendar-db.json", true, false, "/")),
     dataPath
@@ -51,7 +53,7 @@ describe("JsonDatabase", () => {
   });
 
   afterAll(async () => {
-    await storage.db.delete("/");
+    await storage.clear(`/${dataIdentifier}`);
   });
 
   it("should read data from json-database", async () => {
@@ -86,5 +88,11 @@ describe("JsonDatabase", () => {
     expect(await storage.filter({ k: "date", v: Date.parse("2022-08-22 23:23:23") })).toStrictEqual(
       [taskOne]
     );
+  });
+
+  it("should clear data from storage", async () => {
+    await storage.clear(dataIdentifier);
+
+    expect(await storage.read()).toStrictEqual([]);
   });
 });

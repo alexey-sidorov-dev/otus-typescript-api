@@ -5,5 +5,6 @@ export interface IStorage {
   read: () => Promise<ITaskData[] | []>;
   update: (task: ITaskData) => Promise<void>;
   delete: (task: ITaskData) => Promise<void>;
+  clear: (dataIdentifier: string) => Promise<void>;
   filter: (criteria: FilterCriteria) => Promise<ITaskData[] | []>;
 }
